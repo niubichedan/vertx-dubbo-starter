@@ -1,0 +1,15 @@
+# Created by .ignore support plugin (hsz.mobi)
+jdk8/
+target/
+logs/
+out/
+.vertx/
+file-uploads/
+var
+var/log
+var/
+.DS_Store
+.idea/
+*.log
+classes/
+*.iml
