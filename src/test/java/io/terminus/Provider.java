@@ -44,6 +44,7 @@ public class Provider {
         service.setVersion("1.0.0");
 
         //暴露及注册服务
+        System.out.println("服务要暴露！");
         service.export();
         System.out.println("服务已暴露！");
         System.in.read(); // 按任意键退出

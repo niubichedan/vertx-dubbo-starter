@@ -11,7 +11,7 @@ import java.io.IOException;
  * @author: yuhang
  * @Date: 27/03/2018 17:52
  */
-public class Consumer {
+public class  Consumer {
     public static void main(String[] args) throws IOException {
         //当前应用配置
         ApplicationConfig application = new ApplicationConfig();
@@ -24,7 +24,7 @@ public class Consumer {
         //注意：ReferenceConfig为重对象，内部封装了与注册中心的连接，以及与服务提供方的连接
 
         //引用远程服务
-        ReferenceConfig<VertxService> reference = new ReferenceConfig<>();
+        ReferenceConfig<VertxService> reference = new ReferenceConfig<VertxService>();
         reference.setApplication(application);
         reference.setRegistry(registry);
         reference.setInterface(VertxService.class);

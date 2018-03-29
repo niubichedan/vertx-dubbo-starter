@@ -3,9 +3,13 @@ package io.terminus;
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
+import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
 import com.alibaba.dubbo.rpc.RpcContext;
+import com.alibaba.dubbo.rpc.RpcResult;
+import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import io.terminus.service.VertxService;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 
 import java.util.concurrent.ExecutionException;
 
@@ -16,7 +20,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class ConsumerVerticle extends AbstractVerticle {
     @Override
-    public void start() {
+    public void start() throws ExecutionException, InterruptedException {
         System.out.println("verticle start!");
 //当前应用配置
         ApplicationConfig application = new ApplicationConfig();
@@ -40,37 +44,33 @@ public class ConsumerVerticle extends AbstractVerticle {
         VertxService vertxService = reference.get(); // 获取远程服务代理
         vertxService.sayHello();
 
-//        context.runOnContext(res -> {
-//            try {
-//                future.complete((String) RpcContext.getContext().getFuture().get());
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        future.setHandler(res -> {
-//            System.out.println("**************************");
-//            System.out.println(res.result());
-//            System.out.println("**************************");
-//        });
-//        vertx.setPeriodic(1000, res -> {
-//        VertxService vertxService = reference.get(); // 获取远程服务代理
-        vertx.executeBlocking(future -> {
-            vertxService.sayHello();
-            try {
-                java.util.concurrent.Future<Object> helloFuture = RpcContext.getContext().getFuture();
-                future.complete(helloFuture.get());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        }, res -> {
-            System.out.println("**************************");
+        FutureAdapter futureAdapter = (FutureAdapter) RpcContext.getContext().getFuture();
+        handleReply(futureAdapter).setHandler(res -> {
             System.out.println(res.result());
-            System.out.println("**************************");
         });
+    }
 
+    private Future<String> handleReply(FutureAdapter futureAdapter) {
+        Future<String> future = Future.future();
+        ResponseCallback callback = new ResponseCallback() {
+            @Override
+            public void done(Object response) {
+                RpcResult rpcResult = (RpcResult) response;
+                System.out.println("****************");
+                System.out.println((String) rpcResult.getValue());
+                future.complete((String) rpcResult.getValue());
+                System.out.println("****************");
+            }
+
+            @Override
+            public void caught(Throwable exception) {
+                System.out.println("****************");
+                System.out.println(exception.getMessage());
+                future.fail(exception);
+                System.out.println("****************");
+            }
+        };
+        futureAdapter.getFuture().setCallback(callback);
+        return future;
     }
 }
