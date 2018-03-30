@@ -40,14 +40,24 @@ public class ConsumerVerticle extends AbstractVerticle {
         reference.setVersion("1.0.0");
         reference.setAsync(true);
         reference.setTimeout(3000);
-//        Future<String> future = Future.future();
         VertxService vertxService = reference.get(); // 获取远程服务代理
         vertxService.sayHello();
 
+        //下面是异步的例子
         FutureAdapter futureAdapter = (FutureAdapter) RpcContext.getContext().getFuture();
         handleReply(futureAdapter).setHandler(res -> {
+            System.out.println("****************");
             System.out.println(res.result());
+            System.out.println("****************");
+
         });
+        System.out.println("****************");
+        System.out.println("我会先打印！");
+        System.out.println("****************");
+        //下面是同步的例子
+//        System.out.println("****************");
+//        System.out.println("你会看到阻塞线程告警！");
+//        System.out.println((String) RpcContext.getContext().getFuture().get());
     }
 
     private Future<String> handleReply(FutureAdapter futureAdapter) {
@@ -56,16 +66,12 @@ public class ConsumerVerticle extends AbstractVerticle {
             @Override
             public void done(Object response) {
                 RpcResult rpcResult = (RpcResult) response;
-                System.out.println("****************");
-                System.out.println((String) rpcResult.getValue());
                 future.complete((String) rpcResult.getValue());
-                System.out.println("****************");
             }
 
             @Override
             public void caught(Throwable exception) {
                 System.out.println("****************");
-                System.out.println(exception.getMessage());
                 future.fail(exception);
                 System.out.println("****************");
             }
