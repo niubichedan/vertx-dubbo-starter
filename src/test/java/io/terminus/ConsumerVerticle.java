@@ -41,19 +41,23 @@ public class ConsumerVerticle extends AbstractVerticle {
         reference.setAsync(true);
         reference.setTimeout(3000);
         VertxService vertxService = reference.get(); // 获取远程服务代理
-        vertxService.sayHello();
-
-        //下面是异步的例子
-        FutureAdapter futureAdapter = (FutureAdapter) RpcContext.getContext().getFuture();
-        handleReply(futureAdapter).setHandler(res -> {
+        String originalName = Thread.currentThread().getName();
+        System.out.println(originalName);
+        vertx.setPeriodic(1000, timer -> {
+            vertxService.sayHello();
+            //下面是异步的例子
+            FutureAdapter futureAdapter = (FutureAdapter) RpcContext.getContext().getFuture();
+            handleReply(futureAdapter).setHandler(res -> {
+                System.out.println("****************");
+                String name = Thread.currentThread().getName();
+                System.out.println(name + "::" + name.equals(originalName));
+                System.out.println(res.result());
+                System.out.println("****************");
+            });
             System.out.println("****************");
-            System.out.println(res.result());
+            System.out.println("我会先打印！");
             System.out.println("****************");
-
         });
-        System.out.println("****************");
-        System.out.println("我会先打印！");
-        System.out.println("****************");
         //下面是同步的例子
 //        System.out.println("****************");
 //        System.out.println("你会看到阻塞线程告警！");
@@ -65,15 +69,19 @@ public class ConsumerVerticle extends AbstractVerticle {
         ResponseCallback callback = new ResponseCallback() {
             @Override
             public void done(Object response) {
-                RpcResult rpcResult = (RpcResult) response;
-                future.complete((String) rpcResult.getValue());
+                context.runOnContext(res2 -> {
+                    RpcResult rpcResult = (RpcResult) response;
+                    future.complete((String) rpcResult.getValue());
+                });
             }
 
             @Override
             public void caught(Throwable exception) {
-                System.out.println("****************");
-                future.fail(exception);
-                System.out.println("****************");
+                context.runOnContext(res2 -> {
+                    System.out.println("****************");
+                    future.fail(exception);
+                    System.out.println("****************");
+                });
             }
         };
         futureAdapter.getFuture().setCallback(callback);
