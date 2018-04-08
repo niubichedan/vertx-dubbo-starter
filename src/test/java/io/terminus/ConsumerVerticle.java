@@ -43,25 +43,26 @@ public class ConsumerVerticle extends AbstractVerticle {
         VertxService vertxService = reference.get(); // 获取远程服务代理
         String originalName = Thread.currentThread().getName();
         System.out.println(originalName);
+        //下面是异步的例子
         vertx.setPeriodic(1000, timer -> {
             vertxService.sayHello();
-            //下面是异步的例子
             FutureAdapter futureAdapter = (FutureAdapter) RpcContext.getContext().getFuture();
             handleReply(futureAdapter).setHandler(res -> {
-                System.out.println("****************");
+                System.out.println("1****************1");
                 String name = Thread.currentThread().getName();
                 System.out.println(name + "::" + name.equals(originalName));
                 System.out.println(res.result());
-                System.out.println("****************");
+                System.out.println("2****************2");
             });
-            System.out.println("****************");
+            System.out.println("3****************3");
             System.out.println("我会先打印！");
-            System.out.println("****************");
+            System.out.println("4****************4");
         });
         //下面是同步的例子
-//        System.out.println("****************");
-//        System.out.println("你会看到阻塞线程告警！");
-//        System.out.println((String) RpcContext.getContext().getFuture().get());
+        //vertxService.sayHello();
+        //System.out.println("7****************7");
+        //System.out.println("你会看到阻塞线程告警！");
+        //System.out.println((String) RpcContext.getContext().getFuture().get());
     }
 
     private Future<String> handleReply(FutureAdapter futureAdapter) {
@@ -69,6 +70,7 @@ public class ConsumerVerticle extends AbstractVerticle {
         ResponseCallback callback = new ResponseCallback() {
             @Override
             public void done(Object response) {
+                System.out.println("currentThread: "+Thread.currentThread().getName());
                 context.runOnContext(res2 -> {
                     RpcResult rpcResult = (RpcResult) response;
                     future.complete((String) rpcResult.getValue());
@@ -78,9 +80,9 @@ public class ConsumerVerticle extends AbstractVerticle {
             @Override
             public void caught(Throwable exception) {
                 context.runOnContext(res2 -> {
-                    System.out.println("****************");
+                    System.out.println("5****************5");
                     future.fail(exception);
-                    System.out.println("****************");
+                    System.out.println("6****************6");
                 });
             }
         };
