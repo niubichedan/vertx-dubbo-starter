@@ -11,8 +11,10 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <vertx.version>3.5.1</vertx.version>
-        <dubbo.version>2.5.4</dubbo.version>
-        <zk.client.version>0.1</zk.client.version>
+        <dubbo.version>2.6.1</dubbo.version>
+        <!--<zk.client.version>0.1</zk.client.version>-->
+        <zookeeper.version>3.4.11</zookeeper.version>
+        <curator.version>4.0.1</curator.version>
         <log4j.version>1.2.17</log4j.version>
     </properties>
 
@@ -39,10 +41,31 @@
             <version>${log4j.version}</version>
         </dependency>
 
+        <!--<dependency>-->
+            <!--<groupId>com.github.sgroschupf</groupId>-->
+            <!--<artifactId>zkclient</artifactId>-->
+            <!--<version>${zk.client.version}</version>-->
+        <!--</dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
         <dependency>
-            <groupId>com.github.sgroschupf</groupId>
-            <artifactId>zkclient</artifactId>
-            <version>${zk.client.version}</version>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${curator.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>zookeeper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+        </dependency>
+
     </dependencies>
 </project>
